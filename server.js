@@ -12,24 +12,27 @@ function openDb(dbName) {
   return new sqlite3.Database(`./${dbName}.db`);
 }
 
-// Create table if it does not exist
-function createTableIfNotExists(database, keys) {
-  return new Promise((resolve, reject) => {
-    const columns = keys.map(key => `${key} TEXT`).join(', ');
-    const createTableQuery = `CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, ${columns})`;
+// Create table with specified fields and types
+app.post('/create-table/:db', (req, res) => {
+  const { db } = req.params;
+  const { fields } = req.body;
+  const database = openDb(db);
 
-    database.run(createTableQuery, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
+  const columns = Object.entries(fields).map(([key, type]) => `${key} ${type}`).join(', ');
+  const createTableQuery = `CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, ${columns})`;
+
+  database.run(createTableQuery, (err) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.status(201).json({ message: 'Table created successfully' });
   });
-}
+
+  database.close();
+});
 
 // CRUD operations with a database parameter
-app.post('/entries/:db', async (req, res) => {
+app.post('/entries/:db', (req, res) => {
   const { db } = req.params;
   const { data } = req.body;
   const database = openDb(db);
@@ -37,26 +40,20 @@ app.post('/entries/:db', async (req, res) => {
   const payload = JSON.parse(data);
   const keys = Object.keys(payload);
 
-  try {
-    await createTableIfNotExists(database, keys);
+  const placeholders = '?' + ', ?'.repeat(keys.length - 1);
+  const values = keys.map(key => payload[key]);
+  const insertQuery = `INSERT INTO entries (${keys.join(', ')}) VALUES (${placeholders})`;
 
-    const placeholders = '?' + ', ?'.repeat(keys.length - 1);
-    const values = keys.map(key => payload[key]);
-    const insertQuery = `INSERT INTO entries (${keys.join(', ')}) VALUES (${placeholders})`;
+  database.run(insertQuery, values, function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
 
-    database.run(insertQuery, values, function(err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
+    console.log(`A row has been inserted with rowid ${this.lastID}`);
+    res.status(201).json({ id: this.lastID, ...payload });
+  });
 
-      console.log(`A row has been inserted with rowid ${this.lastID}`);
-      res.status(201).json({ id: this.lastID, ...payload });
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  } finally {
-    database.close();
-  }
+  database.close();
 });
 
 app.get('/entries/:db', (req, res) => {
