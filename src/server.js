@@ -138,6 +138,40 @@ app.delete('/api/entries/:db/:id', (req, res) => {
   }
 });
 
+// Add info route
+app.get('/api/info/:db', (req, res) => {
+  const { db } = req.params;
+  const database = openDb(db);
+
+  // Get table info
+  database.all("PRAGMA table_info(entries);", [], (err, fields) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    // Get count of entries
+    database.get("SELECT COUNT(*) as count FROM entries;", [], (err, count) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      const tableInfo = {
+        entryCount: count.count,
+        fields: fields.map(field => ({
+          key: field.name,
+          type: field.type
+        })).filter(field => field.key !== 'id') // Exclude the id field
+      };
+
+      res.json(tableInfo);
+    });
+  });
+
+  if (process.env.NODE_ENV !== 'test') {
+    database.close();
+  }
+});
+
 // Add helper route
 app.get('/helper', (req, res) => {
   console.log('Serving the helper page');

@@ -1,18 +1,29 @@
 <template>
   <div class="database-list">
-    <h2>Available Databases ...</h2>
+    <h2>Available Databases</h2>
     <table class="database-table">
       <thead>
         <tr>
           <th>Database Name</th>
+          <th>Entry Count</th>
+          <th>Fields</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="db in databases" :key="db">
-          <td>{{ db }}</td>
+        <tr v-for="db in databasesInfo" :key="db.name">
+          <td>{{ db.name }}</td>
+          <td>{{ db.info ? db.info.entryCount : 'Loading...' }}</td>
           <td>
-            <button @click="selectDatabase(db)">Select</button>
+            <div v-if="db.info" class="fields-list">
+              <span v-for="field in db.info.fields" :key="field.key" class="field-tag">
+                {{ field.key }}: {{ field.type }}
+              </span>
+            </div>
+            <span v-else>Loading...</span>
+          </td>
+          <td>
+            <button @click="selectDatabase(db.name)">Select</button>
           </td>
         </tr>
       </tbody>
@@ -27,14 +38,24 @@ export default {
   name: 'DatabaseList',
   data() {
     return {
-      databases: []
+      databasesInfo: []
     }
   },
   methods: {
     async fetchDatabases() {
       try {
         const response = await axios.get('/api/dbs');
-        this.databases = response.data;
+        this.databasesInfo = response.data.map(db => ({ name: db, info: null }));
+        
+        // Fetch info for each database
+        for (const db of this.databasesInfo) {
+          try {
+            const infoResponse = await axios.get(`/api/info/${db.name}`);
+            db.info = infoResponse.data;
+          } catch (error) {
+            console.error(`Error fetching info for ${db.name}:`, error);
+          }
+        }
       } catch (error) {
         console.error('Error fetching databases:', error);
       }
@@ -82,5 +103,18 @@ button {
 
 button:hover {
   background-color: #45a049;
+}
+
+.fields-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.field-tag {
+  background-color: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
 }
 </style>
