@@ -28,7 +28,7 @@ test('API Endpoints', async (t) => {
 
   await t.test('create table with fields', async () => {
     const response = await request(app)
-      .post('/create/testdb')
+      .post('/api/create/testdb')
       .send({
         fields: {
           name: 'TEXT',
@@ -42,7 +42,7 @@ test('API Endpoints', async (t) => {
 
   await t.test('insert entry into table', async () => {
     const response = await request(app)
-      .post('/entries/testdb')
+      .post('/api/entries/testdb')
       .send({
         data: JSON.stringify({
           name: 'John Doe',
@@ -56,7 +56,7 @@ test('API Endpoints', async (t) => {
 
   await t.test('get all entries', async () => {
     const response = await request(app)
-      .get('/entries/testdb');
+      .get('/api/entries/testdb');
     
     assert.equal(response.status, 200);
     assert.ok(Array.isArray(response.body));
@@ -64,7 +64,7 @@ test('API Endpoints', async (t) => {
 
   await t.test('list available databases', async () => {
     const response = await request(app)
-      .get('/dbs');
+      .get('/api/dbs');
     
     assert.equal(response.status, 200);
     assert.ok(Array.isArray(response.body));
@@ -74,7 +74,7 @@ test('API Endpoints', async (t) => {
   await t.test('delete entry', async () => {
     // First create an entry to delete
     const createResponse = await request(app)
-      .post('/entries/testdb')
+      .post('/api/entries/testdb')
       .send({
         data: JSON.stringify({
           name: 'To Delete',
@@ -86,19 +86,19 @@ test('API Endpoints', async (t) => {
     
     // Delete the entry
     const deleteResponse = await request(app)
-      .delete(`/entries/testdb/${idToDelete}`);
+      .delete(`/api/entries/testdb/${idToDelete}`);
     assert.equal(deleteResponse.status, 204);
     
     // Verify it's gone
     const getResponse = await request(app)
-      .get('/entries/testdb');
+      .get('/api/entries/testdb');
     const deletedEntry = getResponse.body.find(entry => entry.id === idToDelete);
     assert.equal(deletedEntry, undefined);
   });
 
   await t.test('helper page returns HTML', async () => {
     const response = await request(app)
-      .get('/helper')
+      .get('/api/helper')
       .expect('Content-Type', /html/);
     
     assert.equal(response.status, 200);

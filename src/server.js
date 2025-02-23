@@ -12,7 +12,6 @@ const verbose = sqlite3.verbose();
 
 app.use(cors());
 app.use(json());
-app.use(express.static(join(__dirname, '../dist')));
 
 function openDb(dbName) {
   if (process.env.NODE_ENV === 'test') {
@@ -21,11 +20,11 @@ function openDb(dbName) {
     }
     return global.testDb;
   }
-  return new sqlite3.Database(`./dbs/${dbName}.db`);
+  return new sqlite3.Database(join(__dirname, '../dbs', `${dbName}.db`));
 }
 
 // Create table with specified fields and types
-app.post('/create/:db', (req, res) => {
+app.post('/api/create/:db', (req, res) => {
   try {
     const { db } = req.params;
     const { fields } = req.body;
@@ -52,7 +51,7 @@ app.post('/create/:db', (req, res) => {
 });
 
 // List all available databases
-app.get('/dbs', async (req, res) => {
+app.get('/api/dbs', async (req, res) => {
   try {
     if (process.env.NODE_ENV === 'test') {
       // In test mode, return mock data
@@ -73,7 +72,7 @@ app.get('/dbs', async (req, res) => {
 });
 
 // CRUD operations with a database parameter
-app.post('/entries/:db', (req, res) => {
+app.post('/api/entries/:db', (req, res) => {
   const { db } = req.params;
   const { data } = req.body;
   const database = openDb(db);
@@ -99,7 +98,7 @@ app.post('/entries/:db', (req, res) => {
   }
 });
 
-app.get('/entries/:db', (req, res) => {
+app.get('/api/entries/:db', (req, res) => {
   const { db } = req.params;
   const database = openDb(db);
 
@@ -115,7 +114,7 @@ app.get('/entries/:db', (req, res) => {
   }
 });
 
-app.delete('/entries/:db/:id', (req, res) => {
+app.delete('/api/entries/:db/:id', (req, res) => {
   const { db, id } = req.params;
   const database = openDb(db);
 
@@ -137,6 +136,9 @@ app.get('/helper', (req, res) => {
 
   res.sendFile(join(__dirname, '../dist/index.html'));
 });
+
+// Move static file middleware here, after all API routes
+app.use(express.static(join(__dirname, '../dist')));
 
 const listen = (portNumber = port, callback) => {
   return app.listen(portNumber, callback);
