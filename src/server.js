@@ -12,6 +12,7 @@ const verbose = sqlite3.verbose();
 
 app.use(cors());
 app.use(json());
+app.use(express.static(join(__dirname, '../public')));
 
 function openDb(dbName) {
   if (process.env.NODE_ENV === 'test') {
@@ -128,6 +129,13 @@ app.delete('/entries/:db/:id', (req, res) => {
   if (process.env.NODE_ENV !== 'test') {
     database.close();
   }
+});
+
+// Add helper route
+app.get('/helper', (req, res) => {
+  console.log('Serving the helper page');
+
+  res.sendFile(join(__dirname, '../public/helper.html'));
 });
 
 const listen = (portNumber = port, callback) => {

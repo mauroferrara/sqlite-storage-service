@@ -95,4 +95,13 @@ test('API Endpoints', async (t) => {
     const deletedEntry = getResponse.body.find(entry => entry.id === idToDelete);
     assert.equal(deletedEntry, undefined);
   });
+
+  await t.test('helper page returns HTML', async () => {
+    const response = await request(app)
+      .get('/helper')
+      .expect('Content-Type', /html/);
+    
+    assert.equal(response.status, 200);
+    assert.ok(response.text.includes('Hello World'));
+  });
 });

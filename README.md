@@ -139,6 +139,17 @@ Remove a specific record from the database.
 
 **Response** `204 No Content`
 
+### Helper Interface
+
+#### Helper Page
+```http
+GET /helper
+```
+Returns an HTML page with a simple interface.
+
+**Response** `200 OK`
+Content-Type: text/html
+
 ### Error Responses
 
 All endpoints may return these error responses:
