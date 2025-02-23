@@ -14,12 +14,16 @@
         <tr>
           <th>ID</th>
           <th v-for="header in tableHeaders" :key="header">{{ header }}</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="entry in entries" :key="entry.id">
           <td>{{ entry.id }}</td>
           <td v-for="header in tableHeaders" :key="header">{{ entry[header] }}</td>
+          <td>
+            <button class="delete-btn" @click="deleteEntry(entry.id)">Delete</button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -53,6 +57,16 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching entries:', error);
+      }
+    },
+    async deleteEntry(id) {
+      if (confirm('Are you sure you want to delete this entry?')) {
+        try {
+          await axios.delete(`/api/entries/${this.dbName}/${id}`);
+          await this.fetchEntries(); // Refresh the list
+        } catch (error) {
+          console.error('Error deleting entry:', error);
+        }
       }
     }
   },
@@ -108,5 +122,18 @@ export default {
   text-align: center;
   padding: 20px;
   color: #666;
+}
+
+.delete-btn {
+  padding: 6px 12px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
 }
 </style>
