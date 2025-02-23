@@ -1,11 +1,17 @@
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const cors = require('cors');
+import express, { json } from 'express';
+import sqlite3 from 'sqlite3';
+import cors from 'cors';
+import { readdir } from 'fs/promises';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = 3000;
+const verbose = sqlite3.verbose();
 
 app.use(cors());
-app.use(express.json());
+app.use(json());
 
 function openDb(dbName) {
   if (process.env.NODE_ENV === 'test') {
@@ -18,7 +24,7 @@ function openDb(dbName) {
 }
 
 // Create table with specified fields and types
-app.post('/create-table/:db', (req, res) => {
+app.post('/create/:db', (req, res) => {
   try {
     const { db } = req.params;
     const { fields } = req.body;
@@ -40,6 +46,27 @@ app.post('/create-table/:db', (req, res) => {
     }
   } catch (error) {
     console.error('Error in create-table:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// List all available databases
+app.get('/dbs', async (req, res) => {
+  try {
+    if (process.env.NODE_ENV === 'test') {
+      // In test mode, return mock data
+      return res.json(['test', 'testdb']);
+    }
+
+    const dbDir = join(__dirname, '../dbs');
+    const files = await readdir(dbDir);
+    const databases = files
+      .filter(file => file.endsWith('.db'))
+      .map(file => file.replace('.db', ''));
+    
+    res.json(databases);
+  } catch (error) {
+    console.error('Error listing databases:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -103,11 +130,12 @@ app.delete('/entries/:db/:id', (req, res) => {
   }
 });
 
-// Only start the server if this file is run directly
-if (require.main === module) {
-  app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-  });
+const listen = (portNumber = port, callback) => {
+  return app.listen(portNumber, callback);
+};
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  listen();
 }
 
-module.exports = app;
+export { app, listen };

@@ -31,18 +31,36 @@ node server.js
 
 ## API Reference
 
-### Create Table
-Creates a new table with specified fields in the named database.
+### Database Management
 
+#### List Databases
 ```http
-POST /create-table/:db
+GET /dbs
 ```
+Returns a list of all available databases.
+
+**Response** `200 OK`
+```json
+[
+  "users",
+  "products",
+  "testdb"
+]
+```
+
+### Table Operations
+
+#### Create Table
+```http
+POST /create/:db
+```
+Creates a new table with specified fields in the named database.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `:db` | `string` | Database name |
 
-**Request Body:**
+**Request Body**
 ```json
 {
   "fields": {
@@ -53,47 +71,85 @@ POST /create-table/:db
 }
 ```
 
-### Create Entry
-Add a new record to the specified database.
+**Response** `201 Created`
+```json
+{
+  "message": "Table created successfully"
+}
+```
 
+### Entry Operations
+
+#### Create Entry
 ```http
 POST /entries/:db
 ```
+Add a new record to the specified database.
 
-**Request Body:**
+| Parameter | Type | Description |
+| `:db` | `string` | Database name |
+
+**Request Body**
 ```json
 {
   "data": "{\"name\":\"John Doe\",\"age\":30,\"email\":\"john@example.com\"}"
 }
 ```
 
-### Get All Entries
-Retrieve all records from the specified database.
+**Response** `201 Created`
+```json
+{
+  "id": 1,
+  "name": "John Doe",
+  "age": 30,
+  "email": "john@example.com"
+}
+```
 
+#### List Entries
 ```http
 GET /entries/:db
 ```
+Retrieve all records from the specified database.
 
-### Delete Entry
-Remove a specific record by ID.
+| Parameter | Type | Description |
+| `:db` | `string` | Database name |
 
+**Response** `200 OK`
+```json
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "age": 30,
+    "email": "john@example.com"
+  }
+]
+```
+
+#### Delete Entry
 ```http
 DELETE /entries/:db/:id
 ```
+Remove a specific record from the database.
 
 | Parameter | Type | Description |
-|-----------|------|-------------|
 | `:db` | `string` | Database name |
 | `:id` | `integer` | Record ID to delete |
 
-## Project Structure
+**Response** `204 No Content`
 
+### Error Responses
+
+All endpoints may return these error responses:
+
+```http
+500 Internal Server Error
 ```
-sqlite-storage-service/
-├── server.js         # Main application file
-├── dbs/             # SQLite database files
-├── package.json     # Project dependencies
-└── README.md        # Documentation
+```json
+{
+  "error": "Error message description"
+}
 ```
 
 ## Development
