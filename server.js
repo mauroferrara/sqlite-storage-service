@@ -7,28 +7,41 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Open a specified SQLite database
 function openDb(dbName) {
-  return new sqlite3.Database(`./${dbName}.db`);
+  if (process.env.NODE_ENV === 'test') {
+    if (!global.testDb) {
+      global.testDb = new sqlite3.Database(':memory:');
+    }
+    return global.testDb;
+  }
+  return new sqlite3.Database(`./dbs/${dbName}.db`);
 }
 
 // Create table with specified fields and types
 app.post('/create-table/:db', (req, res) => {
-  const { db } = req.params;
-  const { fields } = req.body;
-  const database = openDb(db);
+  try {
+    const { db } = req.params;
+    const { fields } = req.body;
+    console.log('Creating table in database:', db, 'with fields:', fields);
+    const database = openDb(db);
 
-  const columns = Object.entries(fields).map(([key, type]) => `${key} ${type}`).join(', ');
-  const createTableQuery = `CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, ${columns})`;
+    const columns = Object.entries(fields).map(([key, type]) => `${key} ${type}`).join(', ');
+    const createTableQuery = `CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, ${columns})`;
 
-  database.run(createTableQuery, (err) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+    database.run(createTableQuery, (err) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.status(201).json({ message: 'Table created successfully' });
+    });
+
+    if (process.env.NODE_ENV !== 'test') {
+      database.close();
     }
-    res.status(201).json({ message: 'Table created successfully' });
-  });
-
-  database.close();
+  } catch (error) {
+    console.error('Error in create-table:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // CRUD operations with a database parameter
@@ -53,7 +66,9 @@ app.post('/entries/:db', (req, res) => {
     res.status(201).json({ id: this.lastID, ...payload });
   });
 
-  database.close();
+  if (process.env.NODE_ENV !== 'test') {
+    database.close();
+  }
 });
 
 app.get('/entries/:db', (req, res) => {
@@ -67,7 +82,9 @@ app.get('/entries/:db', (req, res) => {
     res.json(rows);
   });
 
-  database.close();
+  if (process.env.NODE_ENV !== 'test') {
+    database.close();
+  }
 });
 
 app.delete('/entries/:db/:id', (req, res) => {
@@ -81,9 +98,16 @@ app.delete('/entries/:db/:id', (req, res) => {
     res.status(204).end();
   });
 
-  database.close();
+  if (process.env.NODE_ENV !== 'test') {
+    database.close();
+  }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+// Only start the server if this file is run directly
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+  });
+}
+
+module.exports = app;
