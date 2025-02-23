@@ -135,7 +135,7 @@ app.delete('/entries/:db/:id', (req, res) => {
 app.get('/helper', (req, res) => {
   console.log('Serving the helper page');
 
-  res.sendFile(join(__dirname, '../public/helper.html'));
+  res.sendFile(join(__dirname, '../dist/index.html'));
 });
 
 const listen = (portNumber = port, callback) => {
