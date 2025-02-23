@@ -24,6 +24,7 @@
           </td>
           <td>
             <button @click="selectDatabase(db.name)">Select</button>
+            <button @click="deleteDatabase(db.name)" class="delete-btn">Delete</button>
           </td>
         </tr>
       </tbody>
@@ -62,6 +63,16 @@ export default {
     },
     selectDatabase(dbName) {
       this.$emit('database-selected', dbName);
+    },
+    async deleteDatabase(dbName) {
+      if (confirm(`Are you sure you want to delete database "${dbName}"?`)) {
+        try {
+          await axios.delete(`/api/delete/${dbName}`);
+          await this.fetchDatabases(); // Refresh the list
+        } catch (error) {
+          console.error('Error deleting database:', error);
+        }
+      }
     }
   },
   mounted() {
@@ -116,5 +127,14 @@ button:hover {
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.9em;
+}
+
+.delete-btn {
+  margin-left: 8px;
+  background-color: #dc3545;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
 }
 </style>

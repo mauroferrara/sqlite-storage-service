@@ -1,7 +1,7 @@
 import express, { json } from 'express';
 import sqlite3 from 'sqlite3';
 import cors from 'cors';
-import { readdir } from 'fs/promises';
+import { readdir, unlink } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -169,6 +169,36 @@ app.get('/api/info/:db', (req, res) => {
 
   if (process.env.NODE_ENV !== 'test') {
     database.close();
+  }
+});
+
+// Add delete database route
+app.delete('/api/delete/:db', async (req, res) => {
+  try {
+    const { db } = req.params;
+    
+    if (process.env.NODE_ENV === 'test') {
+      // In test mode, just return success
+      return res.status(204).end();
+    }
+
+    const dbPath = join(__dirname, '../dbs', `${db}.db`);
+    const database = openDb(db);
+    
+    // Close the database connection before deletion
+    await new Promise((resolve, reject) => {
+      database.close((err) => {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+
+    // Delete the database file
+    await unlink(dbPath);
+    res.status(204).end();
+  } catch (error) {
+    console.error('Error deleting database:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
