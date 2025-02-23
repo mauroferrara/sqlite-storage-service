@@ -7,10 +7,13 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const verbose = sqlite3.verbose();
 
-app.use(cors());
+app.use(cors({
+  origin: '*', // In production, replace with your specific domain
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS']
+}));
 app.use(json());
 
 function openDb(dbName) {
@@ -213,7 +216,10 @@ app.get('/helper', (req, res) => {
 app.use(express.static(join(__dirname, '../dist')));
 
 const listen = (portNumber = port, callback) => {
-  return app.listen(portNumber, callback);
+  return app.listen(portNumber, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${portNumber}`);
+    if (callback) callback();
+  });
 };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
