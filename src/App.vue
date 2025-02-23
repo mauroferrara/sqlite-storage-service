@@ -8,10 +8,10 @@
         Database List
       </button>
       <button 
-        @click="currentView = 'hello-world'"
-        :class="{ active: currentView === 'hello-world' }"
+        @click="currentView = 'database-creation-utility'"
+        :class="{ active: currentView === 'database-creation-utility' }"
       >
-        Hello World
+        Database Creation Utility
       </button>
     </nav>
 
@@ -19,19 +19,19 @@
       v-if="currentView === 'database-list'"
       @database-selected="handleDatabaseSelection" 
     />
-    <HelloWorld v-if="currentView === 'hello-world'" />
+    <DatabaseCreationUtility v-if="currentView === 'database-creation-utility'" />
   </div>
 </template>
 
 <script>
 import DatabaseList from './components/DatabaseList.vue'
-import HelloWorld from './components/HelloWorld.vue'
+import DatabaseCreationUtility from './components/DatabaseCreationUtility.vue'
 
 export default {
   name: 'App',
   components: {
     DatabaseList,
-    HelloWorld
+    DatabaseCreationUtility
   },
   data() {
     return {

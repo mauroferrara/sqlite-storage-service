@@ -31,8 +31,16 @@ app.post('/api/create/:db', (req, res) => {
     console.log('Creating table in database:', db, 'with fields:', fields);
     const database = openDb(db);
 
-    const columns = Object.entries(fields).map(([key, type]) => `${key} ${type}`).join(', ');
+    if (!Array.isArray(fields)) {
+      return res.status(400).json({ error: 'Fields must be an array' });
+    }
+
+    const columns = fields
+      .map(field => `${field.key} ${field.type}`)
+      .join(', ');
     const createTableQuery = `CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, ${columns})`;
+    
+    console.log(createTableQuery);
 
     database.run(createTableQuery, (err) => {
       if (err) {
