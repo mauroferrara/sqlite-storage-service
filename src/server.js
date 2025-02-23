@@ -12,7 +12,7 @@ const verbose = sqlite3.verbose();
 
 app.use(cors());
 app.use(json());
-app.use(express.static(join(__dirname, '../public')));
+app.use(express.static(join(__dirname, '../dist')));
 
 function openDb(dbName) {
   if (process.env.NODE_ENV === 'test') {
