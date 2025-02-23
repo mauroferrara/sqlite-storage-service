@@ -9,24 +9,27 @@
       No entries found in this database.
     </div>
     
-    <table v-else class="entries-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th v-for="header in tableHeaders" :key="header">{{ header }}</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="entry in entries" :key="entry.id">
-          <td>{{ entry.id }}</td>
-          <td v-for="header in tableHeaders" :key="header">{{ entry[header] }}</td>
-          <td>
-            <button class="delete-btn" @click="deleteEntry(entry.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-else>
+      <button class="export-btn" @click="exportToCSV">Export to CSV</button>
+      <table class="entries-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th v-for="header in tableHeaders" :key="header">{{ header }}</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="entry in entries" :key="entry.id">
+            <td>{{ entry.id }}</td>
+            <td v-for="header in tableHeaders" :key="header">{{ entry[header] }}</td>
+            <td>
+              <button class="delete-btn" @click="deleteEntry(entry.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -68,6 +71,28 @@ export default {
           console.error('Error deleting entry:', error);
         }
       }
+    },
+    exportToCSV() {
+      // Create CSV header
+      const headers = ['id', ...this.tableHeaders];
+      const csvContent = [
+        headers.join(','),
+        ...this.entries.map(entry => 
+          headers.map(header => 
+            JSON.stringify(entry[header] || '')
+          ).join(',')
+        )
+      ].join('\n');
+
+      // Create and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${this.dbName}_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   },
   mounted() {
@@ -135,5 +160,20 @@ export default {
 
 .delete-btn:hover {
   background-color: #c82333;
+}
+
+.export-btn {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  float: right;
+  margin-bottom: 10px;
+}
+
+.export-btn:hover {
+  background-color: #218838;
 }
 </style>
