@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <nav>
+    <nav v-if="currentView !== 'database-visualization'">
       <button 
         @click="currentView = 'database-list'"
         :class="{ active: currentView === 'database-list' }"
@@ -20,27 +20,36 @@
       @database-selected="handleDatabaseSelection" 
     />
     <DatabaseCreationUtility v-if="currentView === 'database-creation-utility'" />
+    <DatabaseVisualization
+      v-if="currentView === 'database-visualization'"
+      :dbName="selectedDatabase"
+      @back="currentView = 'database-list'"
+    />
   </div>
 </template>
 
 <script>
 import DatabaseList from './components/DatabaseList.vue'
 import DatabaseCreationUtility from './components/DatabaseCreationUtility.vue'
+import DatabaseVisualization from './components/DatabaseVisualization.vue'
 
 export default {
   name: 'App',
   components: {
     DatabaseList,
-    DatabaseCreationUtility
+    DatabaseCreationUtility,
+    DatabaseVisualization
   },
   data() {
     return {
-      currentView: 'database-list'
+      currentView: 'database-list',
+      selectedDatabase: null
     }
   },
   methods: {
     handleDatabaseSelection(dbName) {
-      console.log('Selected database:', dbName);
+      this.selectedDatabase = dbName;
+      this.currentView = 'database-visualization';
     }
   }
 }

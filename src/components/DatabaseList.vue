@@ -23,7 +23,7 @@
             <span v-else>Loading...</span>
           </td>
           <td>
-            <button @click="selectDatabase(db.name)">Select</button>
+            <button @click="selectDatabase(db.name)" class="visualize-btn">Visualize</button>
             <button @click="deleteDatabase(db.name)" class="delete-btn">Delete</button>
           </td>
         </tr>
@@ -136,5 +136,13 @@ button:hover {
 
 .delete-btn:hover {
   background-color: #c82333;
+}
+
+.visualize-btn {
+  background-color: #17a2b8;
+}
+
+.visualize-btn:hover {
+  background-color: #138496;
 }
 </style>
