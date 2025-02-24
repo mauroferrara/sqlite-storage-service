@@ -1,0 +1,4 @@
+- id, timestamp should be mandatory field present in every single table
+- the pages should all be refreshable and the url should be shareable
+- the delete action should refresh the pages
+- maybe there should be a back to the top button
