@@ -2,3 +2,5 @@
 - the pages should all be refreshable and the url should be shareable
 - the delete action should refresh the pages
 - maybe there should be a back to the top button
+- API routes should be re-visited
+- one database should have multiple tables OR there should be a unique table per database mandatory
