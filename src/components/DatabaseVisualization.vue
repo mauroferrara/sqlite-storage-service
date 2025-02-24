@@ -51,8 +51,8 @@ export default {
     return {
       entries: [],
       tableHeaders: [],
-      sortField: null,
-      sortDirection: 'asc',
+      sortField: 'id',
+      sortDirection: 'desc',
     }
   },
   methods: {
