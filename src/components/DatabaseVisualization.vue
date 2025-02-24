@@ -14,7 +14,6 @@
       <table class="entries-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th v-for="header in tableHeaders" :key="header" @click="toggleSort(header)">
               {{ header }}
               <span v-if="sortField === header" class="sort-icon">
@@ -26,7 +25,6 @@
         </thead>
         <tbody>
           <tr v-for="entry in entries" :key="entry.id">
-            <td>{{ entry.id }}</td>
             <td v-for="header in tableHeaders" :key="header">{{ entry[header] }}</td>
             <td>
               <button class="delete-btn" @click="deleteEntry(entry.id)">Delete</button>
@@ -64,7 +62,7 @@ export default {
         const response = await axios.get(`/api/entries/${this.dbName}${sortParams}`);
         this.entries = response.data;
         if (this.entries.length > 0) {
-          this.tableHeaders = Object.keys(this.entries[0]).filter(key => key !== 'id');
+          this.tableHeaders = Object.keys(this.entries[0]);
         }
       } catch (error) {
         console.error('Error fetching entries:', error);
