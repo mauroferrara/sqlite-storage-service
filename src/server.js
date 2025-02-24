@@ -115,16 +115,47 @@ app.post('/api/entries/:db', (req, res) => {
   }
 });
 
-app.get('/api/entries/:db', (req, res) => {
-  const { db } = req.params;
+app.get('/api/entries/:db/:field?/:direction?', (req, res) => {
+  const { db, field, direction = 'asc' } = req.params;
   const database = openDb(db);
 
-  database.all("SELECT * FROM entries", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+  let query = "SELECT * FROM entries";
+  
+  if (field) {
+    // Validate the sort direction
+    if (direction && !['asc', 'desc'].includes(direction.toLowerCase())) {
+      return res.status(400).json({ error: 'Sort direction must be either "asc" or "desc"' });
     }
-    res.json(rows);
-  });
+
+    // First verify the field exists in the table
+    database.all("PRAGMA table_info(entries);", [], (err, columns) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      const isValidField = columns.some(col => col.name === field);
+      if (!isValidField) {
+        return res.status(400).json({ error: `Field "${field}" does not exist in the table` });
+      }
+
+      // Execute the query with ORDER BY
+      const finalQuery = `${query} ORDER BY ${field} ${direction.toLowerCase()}`;
+      database.all(finalQuery, [], (err, rows) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        res.json(rows);
+      });
+    });
+  } else {
+    // Execute without sorting if no field is specified
+    database.all(query, [], (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    });
+  }
 
   if (process.env.NODE_ENV !== 'test') {
     database.close();

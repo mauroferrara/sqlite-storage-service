@@ -15,7 +15,12 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th v-for="header in tableHeaders" :key="header">{{ header }}</th>
+            <th v-for="header in tableHeaders" :key="header" @click="toggleSort(header)">
+              {{ header }}
+              <span v-if="sortField === header" class="sort-icon">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -47,13 +52,16 @@ export default {
   data() {
     return {
       entries: [],
-      tableHeaders: []
+      tableHeaders: [],
+      sortField: null,
+      sortDirection: 'asc',
     }
   },
   methods: {
     async fetchEntries() {
       try {
-        const response = await axios.get(`/api/entries/${this.dbName}`);
+        const sortParams = this.sortField ? `/${this.sortField}/${this.sortDirection}` : '';
+        const response = await axios.get(`/api/entries/${this.dbName}${sortParams}`);
         this.entries = response.data;
         if (this.entries.length > 0) {
           this.tableHeaders = Object.keys(this.entries[0]).filter(key => key !== 'id');
@@ -93,6 +101,17 @@ export default {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    },
+    toggleSort(field) {
+      if (this.sortField === field) {
+        // Toggle direction if same field
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        // New field, default to ascending
+        this.sortField = field;
+        this.sortDirection = 'asc';
+      }
+      this.fetchEntries();
     }
   },
   mounted() {
@@ -141,6 +160,8 @@ export default {
 
 .entries-table th {
   background-color: #f5f5f5;
+  cursor: pointer;
+  user-select: none;
 }
 
 .no-data {
@@ -175,5 +196,10 @@ export default {
 
 .export-btn:hover {
   background-color: #218838;
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 4px;
 }
 </style>
